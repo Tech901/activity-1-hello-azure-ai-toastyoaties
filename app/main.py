@@ -79,13 +79,13 @@ def _get_language_client():
         # NOTE: The Language SDK handles API versioning internally --
         # no api_version parameter is needed (unlike the OpenAI SDK).
         # TODO: Uncomment and configure
-        #   from azure.ai.textanalytics import TextAnalyticsClient
-        #   from azure.core.credentials import AzureKeyCredential
-        #   _language_client = TextAnalyticsClient(
-        #       endpoint=os.environ["AZURE_AI_LANGUAGE_ENDPOINT"],
-        #       credential=AzureKeyCredential(os.environ["AZURE_AI_LANGUAGE_KEY"]),
-        #   )
-        raise NotImplementedError("Configure the AI Language client")
+        from azure.ai.textanalytics import TextAnalyticsClient
+        from azure.core.credentials import AzureKeyCredential
+        _language_client = TextAnalyticsClient(
+            endpoint=os.environ["AZURE_AI_LANGUAGE_ENDPOINT"],
+            credential=AzureKeyCredential(os.environ["AZURE_AI_LANGUAGE_KEY"]),
+        )
+        # raise NotImplementedError("Configure the AI Language client")
     return _language_client
 
 
@@ -143,9 +143,9 @@ def check_content_safety(text: str) -> dict:
         dict with keys: safe (bool), categories (dict of category: severity)
     """
     # TODO: Step 2.1 - Get the Content Safety client
-    from azure.ai.contentsafety.models import AnalyzeTextOptions
     client = _get_content_safety_client()
     # TODO: Step 2.2 - Call client.analyze_text() with AnalyzeTextOptions
+    from azure.ai.contentsafety.models import AnalyzeTextOptions
     result = client.analyze_text(AnalyzeTextOptions(text=text))['categoriesAnalysis']
     # TODO: Step 2.3 - Return safety results
     cat_dict = {cat.category: cat.severity for cat in result}
@@ -170,9 +170,15 @@ def extract_key_phrases(text: str) -> list[str]:
         List of key phrase strings.
     """
     # TODO: Step 3.1 - Get the Language client
+    client = _get_language_client()
     # TODO: Step 3.2 - Call client.extract_key_phrases([text])
+    response = client.extract_key_phrases([text])
     # TODO: Step 3.3 - Return the list of key phrases
-    raise NotImplementedError("Implement extract_key_phrases in Step 3")
+    if response[0].is_error is False:
+        return response[0].key_phrases
+    else:
+        raise Exception(f"Key phrase extraction error: {response[0].error}")
+    # raise NotImplementedError("Implement extract_key_phrases in Step 3")
 
 
 def main():
